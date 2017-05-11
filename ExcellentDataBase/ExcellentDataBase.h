@@ -14,6 +14,8 @@ FOUNDATION_EXPORT double ExcellentDataBaseVersionNumber;
 //! Project version string for ExcellentDataBase.
 FOUNDATION_EXPORT const unsigned char ExcellentDataBaseVersionString[];
 
-// In this header, you should import all the public headers of your framework using statements like #import <ExcellentDataBase/PublicHeader.h>
+#import <ExcellentDataBase/ExcellentDataBasePublicHeader.h>
+
+
 
 

@@ -18,18 +18,27 @@ typedef enum sql_constraints:int{
     EConstraintsDefault    = 1 << 5
 }EDSQLConstraints;
 
+typedef enum : NSUInteger {
+    SQLStatementCreate,
+    SQLStatementInsert,
+    SQLStatementDenite,
+    SQLStatementUpdate,
+    SQLStatementEquery
+} SQLStatement;
+
 @interface EDSqlBridge : NSObject
 
 @property (nonatomic, copy)NSMutableString *sql_statements;
 
+@property (nonatomic, copy)NSMutableString *table_name;
+
 /**
  *
- * 在“create”方法之后调用，为create中创建的表添加列。
- * column_name :创建表时的每一列名称
- * data_type   :数据类型
+ * value1 :如果用于创建表时是每一列名称，如果用于插入数据是列名称
+ * value2 :如果用于创建表时是数据类型，如果用于插入数据是列对应的值
  * constraints :用于配置每一行具体的约束和一些附加选项
  */
-- (EDSqlBridge *(^)(NSString *column_name,NSString *data_type))append;
+- (EDSqlBridge *(^)(NSString *value1,NSString *value2))append;
 
 /**
  *
@@ -40,9 +49,22 @@ typedef enum sql_constraints:int{
  */
 - (EDSqlBridge *(^)(int constraint, NSString *others,...))constraint;
 
+/**
+ *
+ * 一次性将所有数据放入数据库。
+ * value1 :如果用于创建表时是每一列名称，如果用于插入数据是列名称
+ * value2 :如果用于创建表时是数据类型，如果用于插入数据是列对应的值
+ * constraints :用于配置每一行具体的约束和一些附加选项
+ */
+- (EDSqlBridge *(^)(NSArray *contents))allin;
+
 @end
 
 @interface EDSQLer : NSObject
+
+@property (nonatomic,assign)SQLStatement sql_state;
+
+@property (nonatomic,strong)EDSqlBridge *bridge;
 
 /**
  *

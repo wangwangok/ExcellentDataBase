@@ -10,10 +10,11 @@
 		3BA0F1D01EC3037200B6BF98 /* ExcellentDataBase.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3BA0F1C61EC3037100B6BF98 /* ExcellentDataBase.framework */; };
 		3BA0F1D51EC3037200B6BF98 /* ExcellentDataBaseTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0F1D41EC3037200B6BF98 /* ExcellentDataBaseTests.m */; };
 		3BA0F1D71EC3037200B6BF98 /* ExcellentDataBase.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1C91EC3037200B6BF98 /* ExcellentDataBase.h */; settings = {ATTRIBUTES = (Public, ); }; };
-		3BA0F1E41EC3038C00B6BF98 /* EDBuild.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1E01EC3038C00B6BF98 /* EDBuild.h */; };
+		3BA0F1E41EC3038C00B6BF98 /* EDBuild.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1E01EC3038C00B6BF98 /* EDBuild.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3BA0F1E51EC3038C00B6BF98 /* EDBuild.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0F1E11EC3038C00B6BF98 /* EDBuild.m */; };
-		3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */; };
+		3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3BA0F1E71EC3038C00B6BF98 /* EDSQLer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */; };
+		3BA0F20F1EC3149E00B6BF98 /* ExcellentDataBasePublicHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */; settings = {ATTRIBUTES = (Public, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,7 @@
 		3BA0F1E11EC3038C00B6BF98 /* EDBuild.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDBuild.m; sourceTree = "<group>"; };
 		3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSQLer.h; sourceTree = "<group>"; };
 		3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDSQLer.m; sourceTree = "<group>"; };
+		3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExcellentDataBasePublicHeader.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -80,6 +82,7 @@
 			isa = PBXGroup;
 			children = (
 				3BA0F1C91EC3037200B6BF98 /* ExcellentDataBase.h */,
+				3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */,
 				3BA0F1E01EC3038C00B6BF98 /* EDBuild.h */,
 				3BA0F1E11EC3038C00B6BF98 /* EDBuild.m */,
 				3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */,
@@ -105,6 +108,7 @@
 			isa = PBXHeadersBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BA0F20F1EC3149E00B6BF98 /* ExcellentDataBasePublicHeader.h in Headers */,
 				3BA0F1E41EC3038C00B6BF98 /* EDBuild.h in Headers */,
 				3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */,
 				3BA0F1D71EC3037200B6BF98 /* ExcellentDataBase.h in Headers */,
@@ -335,6 +339,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
+				DEAD_CODE_STRIPPING = NO;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -342,6 +347,8 @@
 				INFOPLIST_FILE = ExcellentDataBase/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = staticlib;
 				PRODUCT_BUNDLE_IDENTIFIER = Huaxi100.ExcellentDataBase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -352,6 +359,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "";
+				DEAD_CODE_STRIPPING = NO;
 				DEFINES_MODULE = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -359,6 +367,8 @@
 				INFOPLIST_FILE = ExcellentDataBase/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
+				LINK_WITH_STANDARD_LIBRARIES = NO;
+				MACH_O_TYPE = staticlib;
 				PRODUCT_BUNDLE_IDENTIFIER = Huaxi100.ExcellentDataBase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
@@ -404,6 +414,7 @@
 				3BA0F1DC1EC3037200B6BF98 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		3BA0F1DD1EC3037200B6BF98 /* Build configuration list for PBXNativeTarget "ExcellentDataBaseTests" */ = {
 			isa = XCConfigurationList;
@@ -412,6 +423,7 @@
 				3BA0F1DF1EC3037200B6BF98 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

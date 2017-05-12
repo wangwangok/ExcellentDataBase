@@ -1,4 +1,5 @@
 # ExcellentDataBase
+![](https://img.shields.io/travis/USER/REPO.svg) ![](https://img.shields.io/badge/pod-0.0.1-lightgrey.svg) ![](https://img.shields.io/badge/platform-iOS7.0%2B-green.svg) ![](https://img.shields.io/badge/dependency-FMDB-brightgreen.svg)
 ## 简介
 ``ExcellentDataBase``目的是使得数据库操作能够更加简单，支持链式的语法来创建表以及表的一些常规操作，同样通过链式的方法来捕获异常。
 

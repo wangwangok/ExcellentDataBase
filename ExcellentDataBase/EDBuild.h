@@ -9,9 +9,9 @@
 #import <Foundation/Foundation.h>
 #import "EDSQLer.h"
 
-typedef void(^ErrorHandle)(NSError *);
-typedef EDSqlBridge *(^EDCreateHandle)(EDSQLer *sqler);
-typedef void(^EDInsertHandle)(EDSqlBridge *bridge,EDSQLer *sqler);
+typedef void(^ErrorHandle)(NSArray<NSError *>*);
+typedef void(^EDCreateHandle)(EDSqlBridge *sqler);
+typedef void(^EDInsertHandle)(EDSqlBridge *sqler);
 
 @interface EDBuild : NSObject
 
@@ -39,11 +39,11 @@ typedef void(^EDInsertHandle)(EDSqlBridge *bridge,EDSQLer *sqler);
 
 
 
-- (BOOL)tableExists:(EDSqlBridge *)bridge;
+- (BOOL)tableExists;
 
 /**
  
  */
-- (EDBuild *(^)(ErrorHandle inserts))catchException;
+- (EDBuild *(^)(ErrorHandle))catchException;
 
 @end

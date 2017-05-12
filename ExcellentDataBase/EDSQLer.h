@@ -28,9 +28,22 @@ typedef enum : NSUInteger {
 
 @interface EDSqlBridge : NSObject
 
+/** sql 语句 */
+///
 @property (nonatomic, copy)NSMutableString *sql_statements;
 
-@property (nonatomic, copy)NSMutableString *table_name;
+/** 表名称 */
+@property (nonatomic, readonly, copy)NSString *table_name;
+
+/** sql的状态，是create，还是insert等等语句 */
+@property (nonatomic,assign)SQLStatement sql_state;
+
+/**
+ *
+ * name        :表名
+ * ifnotExists :是否是IF NOT EXISTS
+ */
+- (EDSqlBridge *(^)(NSString *name,BOOL ifnotExists))create;
 
 /**
  *
@@ -58,19 +71,6 @@ typedef enum : NSUInteger {
  */
 - (EDSqlBridge *(^)(NSArray *contents))allin;
 
-@end
-
-@interface EDSQLer : NSObject
-
-@property (nonatomic,assign)SQLStatement sql_state;
-
-@property (nonatomic,strong)EDSqlBridge *bridge;
-
-/**
- *
- * name        :表名
- * ifnotExists :是否是IF NOT EXISTS
- */
-- (EDSqlBridge *(^)(NSString *name,BOOL ifnotExists))create;
+- (void)end;
 
 @end

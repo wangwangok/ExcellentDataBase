@@ -20,45 +20,37 @@ static SQLStatement localc_sql_state;
 
 @end
 
-@interface EDSQLer ()
+@implementation EDSqlBridge
+@synthesize table_name = _table_name;
 
-@end
-
-@implementation EDSQLer
++ (BOOL)accessInstanceVariablesDirectly{
+    return NO;
+}
 
 - (EDSqlBridge *(^)(NSString *, BOOL))create{
     
     EDSqlBridge*(^method)(NSString *name, BOOL ifnotExists) = ^ EDSqlBridge* (NSString *name, BOOL ifnotExists){
-        EDSqlBridge *bridge = EDSqlBridge.new;
-        bridge.table_name = [name mutableCopy];
-        bridge.sql_statements = nil;
-        bridge.e_append_type = ESqlAppendAppend;
-        self.bridge = bridge;
+        self->_table_name = [name mutableCopy];
+        self.sql_statements = nil;
+        self.e_append_type = ESqlAppendAppend;
         localc_sql_state = self.sql_state;
         switch (localc_sql_state) {
-            case SQLStatementCreate:
-            {
+            case SQLStatementCreate:{
                 NSString *create_table_sql = [NSString stringWithFormat:@"CREATE TABLE %@ %@()",YES == ifnotExists ? @"IF NOT EXISTS" : @"",name];
-                bridge.sql_statements = [create_table_sql mutableCopy];
+                self.sql_statements = [create_table_sql mutableCopy];
             }
                 break;
-            case SQLStatementInsert:
-            {
-                NSString *create_table_sql = [NSString stringWithFormat:@"INSERT INTO %@",name];
-                bridge.sql_statements = [create_table_sql mutableCopy];
+            case SQLStatementInsert:{
+                NSString *create_table_sql = [NSString stringWithFormat:@"INSERT INTO %@ () VALUES ()",name];
+                self.sql_statements = [create_table_sql mutableCopy];
             }
                 break;
-            default:
-                break;
+            default:break;
         }
-        return bridge;
+        return self;
     };
     return method;
 }
-
-@end
-
-@implementation EDSqlBridge
 
 - (void)setSql_statements:(NSMutableString *)sql_statements{
     _sql_statements = [sql_statements mutableCopy];
@@ -67,7 +59,34 @@ static SQLStatement localc_sql_state;
 - (void)setTable_name:(NSMutableString *)table_name{
     _table_name = [table_name mutableCopy];
 }
+#pragma mark - Private -
+- (void)append_for_create:(NSString *)value1 aValue2:(NSString *)value2{
+    NSString *colum_sql = [NSString stringWithFormat:@"%@ %@,",value1,value2];
+    NSInteger index = self.sql_statements.length - 1;
+    [self.sql_statements insertString:colum_sql atIndex:index];
+}
 
+- (void)append_for_insert:(NSString *)value1 aValue2:(NSString *)value2{
+    NSString *regex = @"\\)\\s+" ;
+    NSRange range = [self.sql_statements rangeOfString:regex options:NSRegularExpressionSearch];
+    if (range.location != NSNotFound) {
+        [self.sql_statements insertString:[NSString stringWithFormat:@"%@,",value1] atIndex:range.location];
+    }
+    [self.sql_statements insertString:[NSString stringWithFormat:@"%@,",value2] atIndex:self.sql_statements.length - 1];
+}
+
+- (void)allin_for_insert:(NSArray *)contents{
+    NSString *delete_regex = @"\\(\\)\\B\\s" ;
+    NSRange range = [self.sql_statements rangeOfString:delete_regex options:NSRegularExpressionSearch];
+    if (range.location != NSNotFound) {
+        [self.sql_statements deleteCharactersInRange:range];
+    }
+    for (NSString *value in contents) {
+        [self.sql_statements insertString:[NSString stringWithFormat:@"%@,",value] atIndex:self.sql_statements.length - 1];
+    }
+}
+
+#pragma mark - Public -
 #define MAX_CONSTRAINTS_SIZE 6
 - (EDSqlBridge *(^)(NSString *value1,NSString *value2))append{
     /// (id integer PRIMARY KEY ,discoverData blob NOT NULL )
@@ -75,31 +94,22 @@ static SQLStatement localc_sql_state;
         NSAssert(NO, @"Sql statement is empty, Please call \"create\" method before");
     }
     self.e_append_type = ESqlAppendAppend;
-    return ^ EDSqlBridge* (NSString *value1,NSString *value2){
+    EDSqlBridge *(^method)(NSString *value1,NSString *value2) = ^EDSqlBridge *(NSString *value1, NSString *value2){
         switch (localc_sql_state) {
-            case SQLStatementCreate:{
-                NSString *colum_sql = [NSString stringWithFormat:@"%@ %@,",value1,value2];
-                NSInteger index = self.sql_statements.length - 1;
-                [self.sql_statements insertString:colum_sql atIndex:index];
-            }
-                break;
-            case SQLStatementInsert:{
-                NSRegularExpression
-            }
-                break;
-            default:
-                break;
+            case SQLStatementCreate:[self append_for_create:value1 aValue2:value2];break;
+            case SQLStatementInsert:[self append_for_insert:value1 aValue2:value2];break;
+            default:break;
         }
         return self;
     };
+    return method;
 }
 
 - (EDSqlBridge *(^)(NSArray *))allin{
     EDSqlBridge *(^method)(NSArray *contents) = ^EDSqlBridge *(NSArray *contents){
-        
+        [self allin_for_insert:contents];
         return self;
     };
-    
     return method;
 }
 
@@ -130,12 +140,12 @@ static SQLStatement localc_sql_state;
                 }
             }
         }
-        NSInteger index = self.sql_statements.length - 1;
+        NSInteger index = self.sql_statements.length - 2;
         [self.sql_statements insertString:sql_constraints atIndex:index];
         if (!others) {
             return self;
         }
-        index = self.sql_statements.length - 1;
+        index = self.sql_statements.length - 2;
         [self.sql_statements insertString:[NSString stringWithFormat:@" %@",others] atIndex:index];
         va_list args;
         va_start(args, others);
@@ -152,6 +162,16 @@ static SQLStatement localc_sql_state;
     };
 }
 
+
+- (void)end{
+    NSString *regex = @",\\)" ;
+    NSRange range = [self.sql_statements rangeOfString:regex options:NSRegularExpressionSearch];
+    if (range.location == NSNotFound) {
+        return;
+    }
+    [self.sql_statements deleteCharactersInRange:NSMakeRange(range.location, 1)];
+    [self end];
+}
 
 
 @end

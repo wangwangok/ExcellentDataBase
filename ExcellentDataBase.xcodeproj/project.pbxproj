@@ -15,6 +15,8 @@
 		3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3BA0F1E71EC3038C00B6BF98 /* EDSQLer.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */; };
 		3BA0F20F1EC3149E00B6BF98 /* ExcellentDataBasePublicHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */; settings = {ATTRIBUTES = (Public, ); }; };
+		3BC100311ECAD63500B61364 /* EDSqlStatementsBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */; };
+		3BC100321ECAD63500B61364 /* EDSqlStatementsBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -39,6 +41,9 @@
 		3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSQLer.h; sourceTree = "<group>"; };
 		3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDSQLer.m; sourceTree = "<group>"; };
 		3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ExcellentDataBasePublicHeader.h; sourceTree = "<group>"; };
+		3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSqlStatementsBridge.h; sourceTree = "<group>"; };
+		3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDSqlStatementsBridge.m; sourceTree = "<group>"; };
+		3BC100361ECADB4E00B61364 /* libFMDB.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFMDB.a; path = "../../Library/Developer/Xcode/DerivedData/EDExamole-djeyssfhnxkisnghaulayzmysoil/Build/Products/Debug-iphonesimulator/FMDB/libFMDB.a"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -66,6 +71,7 @@
 				3BA0F1C81EC3037100B6BF98 /* ExcellentDataBase */,
 				3BA0F1D31EC3037200B6BF98 /* ExcellentDataBaseTests */,
 				3BA0F1C71EC3037100B6BF98 /* Products */,
+				3BC100351ECADB4E00B61364 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -87,6 +93,8 @@
 				3BA0F1E11EC3038C00B6BF98 /* EDBuild.m */,
 				3BA0F1E21EC3038C00B6BF98 /* EDSQLer.h */,
 				3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */,
+				3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */,
+				3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */,
 				3BA0F1CA1EC3037200B6BF98 /* Info.plist */,
 			);
 			path = ExcellentDataBase;
@@ -101,6 +109,14 @@
 			path = ExcellentDataBaseTests;
 			sourceTree = "<group>";
 		};
+		3BC100351ECADB4E00B61364 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				3BC100361ECADB4E00B61364 /* libFMDB.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -110,6 +126,7 @@
 			files = (
 				3BA0F20F1EC3149E00B6BF98 /* ExcellentDataBasePublicHeader.h in Headers */,
 				3BA0F1E41EC3038C00B6BF98 /* EDBuild.h in Headers */,
+				3BC100311ECAD63500B61364 /* EDSqlStatementsBridge.h in Headers */,
 				3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */,
 				3BA0F1D71EC3037200B6BF98 /* ExcellentDataBase.h in Headers */,
 			);
@@ -213,6 +230,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BC100321ECAD63500B61364 /* EDSqlStatementsBridge.m in Sources */,
 				3BA0F1E71EC3038C00B6BF98 /* EDSQLer.m in Sources */,
 				3BA0F1E51EC3038C00B6BF98 /* EDBuild.m in Sources */,
 			);
@@ -346,12 +364,14 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = ExcellentDataBase/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = staticlib;
-				PRODUCT_BUNDLE_IDENTIFIER = Huaxi100.ExcellentDataBase;
+				PRODUCT_BUNDLE_IDENTIFIER = wangwill.ExcellentDataBase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
@@ -366,12 +386,14 @@
 				DYLIB_INSTALL_NAME_BASE = "@rpath";
 				INFOPLIST_FILE = ExcellentDataBase/Info.plist;
 				INSTALL_PATH = "$(LOCAL_LIBRARY_DIR)/Frameworks";
+				IPHONEOS_DEPLOYMENT_TARGET = 7.0;
 				LD_RUNPATH_SEARCH_PATHS = "$(inherited) @executable_path/Frameworks @loader_path/Frameworks";
 				LINK_WITH_STANDARD_LIBRARIES = NO;
 				MACH_O_TYPE = staticlib;
-				PRODUCT_BUNDLE_IDENTIFIER = Huaxi100.ExcellentDataBase;
+				PRODUCT_BUNDLE_IDENTIFIER = wangwill.ExcellentDataBase;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SKIP_INSTALL = YES;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};

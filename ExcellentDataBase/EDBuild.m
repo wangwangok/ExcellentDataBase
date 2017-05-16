@@ -28,9 +28,6 @@ static NSString *const EDTableExistsSQL = @"select [sql] from sqlite_master wher
 #define EDTableDropSQL  @"DROP TABLE %@"
 
 static const char *EDQueueName = "com.ExcellentDataBase.queue";
-#define CREATE_QUEUE(queue) if(queue == nil){\
-                                queue = dispatch_queue_create(EDQueueName, DISPATCH_QUEUE_CONCURRENT);\
-                            }\
 
 #define CREATE_DATABASE(build,db_name) if(self.db == nil){\
                                             NSString *cachesPath = [NSSearchPathForDirectoriesInDomains(NSCachesDirectory, NSUserDomainMask, YES) firstObject];\
@@ -40,10 +37,9 @@ static const char *EDQueueName = "com.ExcellentDataBase.queue";
                                         }\
 
 
-#define CREATE_SQLER(state) if (!self.sqler) {\
-                                self.sqler =EDSqlBridge.new;\
+#define CREATE_SQLER(sqler) if (!sqler) {\
+                                sqler =EDSqlBridge.new;\
                             }\
-                            self.sqler.sql_state = state;\
 
 @interface EDBuild ()
 @property (nonatomic,strong) FMDatabase  *db;
@@ -52,30 +48,38 @@ static const char *EDQueueName = "com.ExcellentDataBase.queue";
 @end
 
 @implementation EDBuild
-static dispatch_queue_t db_queue;
 
 - (instancetype)init{
     self = [super init];
     if (self) {
         self.errors = [NSMutableArray array];
-        CREATE_QUEUE(db_queue);
+        CREATE_SQLER(self.sqler);
     }
     return self;
+}
+
+static dispatch_queue_t ed_database_queue() {
+    static dispatch_queue_t ed_database_opration_queue;
+    static dispatch_once_t onceToken;
+    dispatch_once(&onceToken, ^{
+        ed_database_opration_queue = dispatch_queue_create(EDQueueName, DISPATCH_QUEUE_CONCURRENT);
+    });
+    
+    return ed_database_opration_queue;
 }
 
 
 #pragma mark - Public Method -
 - (EDBuild *(^)(NSString *db_name ,EDCreateHandle making))make_database{
-    
     EDBuild *(^method)(NSString *db_name ,EDCreateHandle making) =^EDBuild *(NSString *db_name ,EDCreateHandle making){
         CREATE_DATABASE(self,db_name);
-        CREATE_SQLER(SQLStatementCreate);
-        making(self.sqler);
-        if([self tableExists] && self.sqler.ifnotExists){/// 判断表是否存在
+        EDSqlCreateBridge *create = EDSqlCreateBridge.new;
+        making(create);
+        self.sqler.end(create.sql_statements,create.table_name);
+        if([self tableExists] && create.ifnotExists){/// 判断表是否存在
             self.drop_table(db_name);
         }
-        [self.sqler end];
-        dispatch_sync(db_queue, ^{
+        dispatch_sync(ed_database_queue(), ^{
             self.create_table(db_name);
         });
         return self;
@@ -84,15 +88,13 @@ static dispatch_queue_t db_queue;
 }
 
 - (EDBuild *(^)(EDInsertHandle inserts))insert{
-    EDSqlBridgeDelegateInsert *delegate = [EDSqlBridgeDelegateInsert new];
     EDBuild *(^method)(EDInsertHandle inserts) =^EDBuild *(EDInsertHandle inserts){
-        CREATE_SQLER(SQLStatementInsert);
-        dispatch_sync(db_queue, ^{
-            inserts(self.sqler);
-            [self.sqler end];
+        dispatch_sync(ed_database_queue(), ^{
+            EDSqlInsertBridge *insert_sql = EDSqlInsertBridge.new;
+            inserts(insert_sql);
+            self.sqler.end(insert_sql.sql_statements,insert_sql.table_name);
             self.insert_data();
         });
-        self.sqler = delegate;
         return self;
     };
     return method;
@@ -169,22 +171,21 @@ static dispatch_queue_t db_queue;
     };
 }
 
-
 ///MARK:- 插入数据 -
 - (EDBuild *(^)())insert_data{
     EDBuild *(^method)() = ^EDBuild *(){
-        if (![self.db open]) {
-            self.db = nil;
-            return self;
-        }
         __block BOOL result = NO;
-        dispatch_barrier_sync(db_queue, ^{
+        dispatch_barrier_async(ed_database_queue(), ^{
+            if (![self.db open]) {
+                self.db = nil;
+                return ;
+            }
             result = [self.db executeUpdate:self.sqler.sql_statements,nil];
+            if (result == NO) {
+                [self.errors addObject:[NSError errorWithDomain:EDErrorDomain code:EDInsertDataError userInfo:@{NSLocalizedDescriptionKey:EDInsertDataErrorDescription}]];
+            }
+            [self.db close];
         });
-        if (result == NO) {
-            [self.errors addObject:[NSError errorWithDomain:EDErrorDomain code:EDInsertDataError userInfo:@{NSLocalizedDescriptionKey:EDInsertDataErrorDescription}]];
-        }
-        [self.db close];
         return self;
     };
     return method;

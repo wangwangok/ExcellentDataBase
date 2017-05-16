@@ -8,10 +8,11 @@
 
 #import <Foundation/Foundation.h>
 #import "EDSQLer.h"
+#import "EDSqlStatementsBridge.h"
 
 typedef void(^ErrorHandle)(NSArray<NSError *>*);
-typedef void(^EDCreateHandle)(EDSqlBridge *sqler);
-typedef void(^EDInsertHandle)(EDSqlBridge *sqler);
+typedef void(^EDCreateHandle)(EDSqlCreateBridge *sqler);
+typedef void(^EDInsertHandle)(EDSqlInsertBridge *sqler);
 
 __attribute__((objc_subclassing_restricted)) @interface EDBuild : NSObject
 

@@ -48,7 +48,7 @@ sqler.create(@"news").input(data);
 但是这里需要注意的是，如果数据库表中的列名称和系统命名有冲突的话，你需要调用方法:
 ```
 @implementation EDModel
-    - (NSDictionary *)SystemKeywordsReplace{
+- (NSDictionary *)SystemKeywordsReplace{
     return @{@"ID":@"id",
             @"Title":@"title"};
 }

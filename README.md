@@ -2,19 +2,20 @@
 ## 简介
 ``ExcellentDataBase``目的是使得数据库操作能够更加简单，支持链式的语法来创建表以及表的一些常规操作，同样通过链式的方法来捕获异常。
 
-##效果
+## 效果
 ```
 EDBuild *builder = [EDBuild new];
 builder.make_database(@"database",^(EDSqlCreateBridge *sqler){
-sqler.create(@"news",NO).append(@"id",@"int").constraint(EConstraintsPrimaryKey,nil).append(@"title",@"varchar(255)").constraint(EConstraintsNotNull,nil);
+    sqler.create(@"news",NO).append(@"id",@"int").constraint(EConstraintsPrimaryKey,nil).append(@"title",@"varchar(255)").constraint(EConstraintsNotNull,nil);
 }).insert(^(EDSqlInsertBridge *sqler){
-sqler.create(@"news").append(@"id",@"101").append(@"title",@"Chunxi Road");
+    sqler.create(@"news").append(@"id",@"101").append(@"title",@"Chunxi Road");
 }).catchException(^(NSArray<NSError *> *errors){
-NSLog(@"%@",errors);
+    NSLog(@"%@",errors);
 });
 ```
 这里会创建一个名为__ database__的数据库，在``make_database``方法中通过链式的方式来创建一个表创建语句。同样在``insert``中通过链式的方式来创建一个表插入语句。总体上使用链式的方式来做数据的增删改查操作，以及最后的异常捕获操作。
-##使用
+
+## 使用
 #### 建表
 - 1.手动通过输入列名称和数据类型，以及对每个列名称的约束：
 
@@ -47,9 +48,9 @@ sqler.create(@"news").input(data);
 但是这里需要注意的是，如果数据库表中的列名称和系统命名有冲突的话，你需要调用方法:
 ```
 @implementation EDModel
-- (NSDictionary *)SystemKeywordsReplace{
-return @{@"ID":@"id",
-@"Title":@"title"};
+    - (NSDictionary *)SystemKeywordsReplace{
+    return @{@"ID":@"id",
+            @"Title":@"title"};
 }
 @end
 ```

@@ -17,11 +17,14 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    [EDBuild make_database:^(EDSQLer *sqler) {
-        
-        EDSqlBridge *bridge = sqler.create(@"table",YES).append(@"cloumn1",@"int").constraint(EConstraintsNotNull|EConstraintsPrimaryKey, nil).append(@"cloumn2",@"int").constraint(EConstraintsNotNull|EConstraintsCheck,@"(Id_P>0)",nil).append(@"cloumn3",@"int").constraint(EConstraintsNone,nil);
-        NSLog(@"%@",bridge.sql_statements);
-    }];
+    EDBuild *builder = [EDBuild new];
+    builder.make_database(@"database",^(EDSqlBridge *sqler){
+        sqler.create(@"news",YES).append(@"id",@"int").constraint(EConstraintsPrimaryKey,nil).append(@"title",@"varchar(255)").constraint(EConstraintsNotNull,nil);
+    }).insert(^(EDSqlBridge *sqler){
+        sqler.create(@"news",YES).append(@"id",@"101").append(@"title",@"Changan Street");
+    }).catchException(^(NSArray<NSError *> *errors){
+        NSLog(@"%@",errors);
+    });
 }
 
 

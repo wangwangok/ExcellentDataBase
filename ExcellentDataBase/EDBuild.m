@@ -71,7 +71,7 @@ static dispatch_queue_t db_queue;
         CREATE_DATABASE(self,db_name);
         CREATE_SQLER(SQLStatementCreate);
         making(self.sqler);
-        if([self tableExists]){/// 判断表是否存在
+        if([self tableExists] && self.sqler.ifnotExists){/// 判断表是否存在
             self.drop_table(db_name);
         }
         [self.sqler end];
@@ -84,11 +84,15 @@ static dispatch_queue_t db_queue;
 }
 
 - (EDBuild *(^)(EDInsertHandle inserts))insert{
+    EDSqlBridgeDelegateInsert *delegate = [EDSqlBridgeDelegateInsert new];
     EDBuild *(^method)(EDInsertHandle inserts) =^EDBuild *(EDInsertHandle inserts){
         CREATE_SQLER(SQLStatementInsert);
-        inserts(self.sqler);
-        [self.sqler end];
-        self.insert_data();
+        dispatch_sync(db_queue, ^{
+            inserts(self.sqler);
+            [self.sqler end];
+            self.insert_data();
+        });
+        self.sqler = delegate;
         return self;
     };
     return method;
@@ -167,7 +171,6 @@ static dispatch_queue_t db_queue;
 
 
 ///MARK:- 插入数据 -
-
 - (EDBuild *(^)())insert_data{
     EDBuild *(^method)() = ^EDBuild *(){
         if (![self.db open]) {
@@ -186,4 +189,5 @@ static dispatch_queue_t db_queue;
     };
     return method;
 }
+
 @end

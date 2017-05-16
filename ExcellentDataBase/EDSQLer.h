@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+#define SQLReturnType EDSqlBridge*
+
 /// 用于限制加入表的数据的类型
 typedef enum sql_constraints:int{
     EConstraintsNone       = 1 << 0,
@@ -38,12 +40,15 @@ typedef enum : NSUInteger {
 /** sql的状态，是create，还是insert等等语句 */
 @property (nonatomic,assign)SQLStatement sql_state;
 
+/** 是否删除原来的旧表重新创建新表 */
+@property (nonatomic,assign)BOOL ifnotExists;
+
 /**
  *
  * name        :表名
- * ifnotExists :是否是IF NOT EXISTS
+ * ifnotExists :是否删除原来的旧表重新创建新表
  */
-- (EDSqlBridge *(^)(NSString *name,BOOL ifnotExists))create;
+- (EDSqlBridge *(^)(NSString * name,BOOL ifnotExists))create;
 
 /**
  *
@@ -72,5 +77,6 @@ typedef enum : NSUInteger {
 - (EDSqlBridge *(^)(NSArray *contents))allin;
 
 - (void)end;
+
 
 @end

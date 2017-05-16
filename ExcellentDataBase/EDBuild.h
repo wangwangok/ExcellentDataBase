@@ -13,7 +13,7 @@ typedef void(^ErrorHandle)(NSArray<NSError *>*);
 typedef void(^EDCreateHandle)(EDSqlBridge *sqler);
 typedef void(^EDInsertHandle)(EDSqlBridge *sqler);
 
-@interface EDBuild : NSObject
+__attribute__((objc_subclassing_restricted)) @interface EDBuild : NSObject
 
 /**
  * 创建一个DB，并创建table
@@ -42,7 +42,8 @@ typedef void(^EDInsertHandle)(EDSqlBridge *sqler);
 - (BOOL)tableExists;
 
 /**
- 
+ * 捕获异常数据
+ * 会将所有产生error的数据统一返回
  */
 - (EDBuild *(^)(ErrorHandle))catchException;
 

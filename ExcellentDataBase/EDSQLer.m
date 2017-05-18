@@ -24,6 +24,7 @@
 
 #pragma mark - Public -
 - (EDSqlBridge *(^)(NSString *,NSString *))end{
+#warning TODO: this is a error function
     return ^EDSqlBridge *(NSString *sql,NSString * table_name){
         if (!self.table_name) {
             _table_name = table_name;

@@ -84,18 +84,17 @@ static dispatch_queue_t ed_database_queue() {
             dispatch_async(ed_database_queue(), ^{
                 self.create_table(db_name,self.sqler.sql_statements);
             });
+        }else{
+            dispatch_group_t create_table_group = dispatch_group_create();
+            stack_pointer top = create -> top;
+            while (top) {
+                struct stack_table table = stack_pop(&top);
+                dispatch_group_async(create_table_group, ed_database_queue(), ^{
+                    self.create_table(db_name,[NSString stringWithUTF8String:table.sql]);
+                });
+            }
+            dispatch_group_wait(create_table_group, (int64_t)(10 * NSEC_PER_SEC));
         }
-        dispatch_group_t create_table_group = dispatch_group_create();
-        stack_pointer top = create -> top;
-        while (top) {
-            struct stack_table table = stack_pop(&top);
-            dispatch_group_async(create_table_group, ed_database_queue(), ^{
-                self.create_table(db_name,[NSString stringWithUTF8String:table.sql]);
-            });
-        }
-        dispatch_group_notify(create_table_group, ed_database_queue(), ^{
-#warning TODO
-        });
         return self;
     };
     return method;

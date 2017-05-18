@@ -8,6 +8,46 @@
 
 #import "EDSQLer.h"
 
+struct stack_table {
+    char *sql;
+    char *table_name;
+};
+typedef struct sql_stack* stack_pointer;
+typedef struct sql_stack {
+    struct stack_table table;
+    stack_pointer next;
+}SqlStack;
+
+void stack_push(stack_pointer *top, NSString * const sql, NSString * const table_name);
+struct stack_table stack_pop(stack_pointer *top);
+
+///https://developer.apple.com/library/content/documentation/Cocoa/Conceptual/ObjCRuntimeGuide/Articles/ocrtTypeEncodings.html
+
+typedef enum : NSUInteger {///这里为什么没有用移位操作，是因为8位用来移位只能表示8个有效数字，但是这里类型明显大于8。
+    EDEncodeTypeMask = 0xff,/// 掩码
+    EDEncodeTypeUnknown = 0,
+    EDEncodeTypeChar    = 1,
+    EDEncodeTypeInt     = 2,
+    EDEncodeTypeShort   = 3,
+    EDEncodeTypeInt32   = 4,
+    EDEncodeTypeInt64   = 5,
+    EDEncodeTypeUChar   = 6,
+    EDEncodeTypeUInt    = 7,
+    EDEncodeTypeUShort  = 8,
+    EDEncodeTypeUInt32  = 9,
+    EDEncodeTypeUInt64  = 10,
+    EDEncodeTypeFloat   = 11,
+    EDEncodeTypeDouble  = 12,
+    EDEncodeTypeBool    = 13,
+    EDEncodeTypeVoid    = 14,
+    EDEncodeTypeChars   = 15,
+    EDEncodeTypeObject  = 16,
+    EDEncodeTypePointer = 17,
+    EDEncodeTypeStruct  = 18
+} EDEncodingType;
+
+EDEncodingType EDEncodeTheType(char const *value);
+
 /// 用于限制加入表的数据的类型
 typedef enum sql_constraints:int{
     EConstraintsNone       = 1 << 0,
@@ -20,16 +60,19 @@ typedef enum sql_constraints:int{
 
 
 @interface EDSqlCreateBridge : EDSqlBridge
-
+{
+@public
+stack_pointer top;
+}
 /** 是否删除原来的旧表重新创建新表 */
 @property (nonatomic,assign)BOOL ifnotExists;
 
 /**
  *
- * name        :表名
- * ifnotExists :是否删除原来的旧表重新创建新表
+  * ifnotExists :是否删除原来的旧表重新创建新表
+ * name        :表名 或者是 一个model值 ，如果是传入的一个model，那么后面就需要传入第一个表的名称，同时也可以在人为知道的情况下为每一个表自定义名称
  */
-- (EDSqlCreateBridge *(^)(NSString * name,BOOL ifnotExists))create;
+- (EDSqlCreateBridge *(^)(BOOL, id,...))create;
 
 /**
  *
@@ -89,6 +132,6 @@ typedef enum sql_constraints:int{
  * @{@"ID":@"id"}
  * id为系统关键字不能作为模型的属性名称，则将属性名称改为ID。所以在这种情况下就要传入上诉字典，这会在sql语句时将ID变为id。
  */
-- (NSDictionary *)SystemKeywordsReplace;
++ (NSDictionary *)SystemKeywordsReplace;
 
 @end

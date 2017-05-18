@@ -16,7 +16,7 @@ builder.make_database(@"database",^(EDSqlCreateBridge *sqler){
 这里会创建一个名为__ database__的数据库，在``make_database``方法中通过链式的方式来创建一个表创建语句。同样在``insert``中通过链式的方式来创建一个表插入语句。总体上使用链式的方式来做数据的增删改查操作，以及最后的异常捕获操作。
 
 ## 使用
-#### 建表
+### 建表
 - 1.手动通过输入列名称和数据类型，以及对每个列名称的约束：
 
 ```
@@ -24,7 +24,7 @@ sqler.create(@"news",NO).append(@"id",@"int").constraint(EConstraintsPrimaryKey,
 ```
 其中``constraint ``方法的两个参数是用来约束键（列名称）的，形如``EConstraintsPrimaryKey, EConstraintsNotNull ``同时，还可以为同一个键添加多个约束``EConstraintsPrimaryKey  | EConstraintsNotNull ``。第二个参数是给其值加约束，比如：``id < 1000``之类的约束，这是一个可变参数。
 
-#### 插入
+### 插入
 - 1.Key-Value方式插入数据：
 
 ```
@@ -56,8 +56,8 @@ sqler.create(@"news").input(data);
 ```
 会根据该方法提供的key-value进行替换。
 
-#### 删除
+### 删除
 
-#### 修改
+### 修改
 
-#### 查询
+### 查询

@@ -24,7 +24,7 @@
 
 #pragma mark - Public -
 - (EDSqlBridge *(^)(NSString *,NSString *))end{
-    return ^EDSqlBridge *(NSString *sql,NSString *table_name){
+    return ^EDSqlBridge *(NSString *sql,NSString * table_name){
         if (!self.table_name) {
             _table_name = table_name;
         }

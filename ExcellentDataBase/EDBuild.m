@@ -75,12 +75,26 @@ static dispatch_queue_t ed_database_queue() {
         CREATE_DATABASE(self,db_name);
         EDSqlCreateBridge *create = EDSqlCreateBridge.new;
         making(create);
-        self.sqler.end(create.sql_statements,create.table_name);
-        if([self tableExists] && create.ifnotExists){/// 判断表是否存在
-            self.drop_table(db_name);
+        /// 这里需要判断是模型创建的栈sql，还是普通的sql。
+        if (create.sql_statements) {/// 普通sql
+            self.sqler.end(create.sql_statements,create.table_name);
+            if([self tableExists:self.sqler.table_name] && create.ifnotExists){/// 判断表是否存在
+                self.drop_table(self.sqler.table_name);
+            }
+            dispatch_async(ed_database_queue(), ^{
+                self.create_table(db_name,self.sqler.sql_statements);
+            });
         }
-        dispatch_sync(ed_database_queue(), ^{
-            self.create_table(db_name);
+        dispatch_group_t create_table_group = dispatch_group_create();
+        stack_pointer top = create -> top;
+        while (top) {
+            struct stack_table table = stack_pop(&top);
+            dispatch_group_async(create_table_group, ed_database_queue(), ^{
+                self.create_table(db_name,[NSString stringWithUTF8String:table.sql]);
+            });
+        }
+        dispatch_group_notify(create_table_group, ed_database_queue(), ^{
+#warning TODO
         });
         return self;
     };
@@ -88,12 +102,13 @@ static dispatch_queue_t ed_database_queue() {
 }
 
 - (EDBuild *(^)(EDInsertHandle inserts))insert{
+#warning TODO
     EDBuild *(^method)(EDInsertHandle inserts) =^EDBuild *(EDInsertHandle inserts){
-        dispatch_sync(ed_database_queue(), ^{
+        dispatch_async(ed_database_queue(), ^{
             EDSqlInsertBridge *insert_sql = EDSqlInsertBridge.new;
             inserts(insert_sql);
             self.sqler.end(insert_sql.sql_statements,insert_sql.table_name);
-            self.insert_data();
+            self.insert_data(self.sqler.sql_statements);
         });
         return self;
     };
@@ -111,7 +126,7 @@ static dispatch_queue_t ed_database_queue() {
 }
 
 ///MARK:- 判断表是否存在 -
-- (BOOL)tableExists{
+- (BOOL)tableExists:(NSString *)table_name{
     if (self.db == nil) {
         return NO;
     }
@@ -119,7 +134,7 @@ static dispatch_queue_t ed_database_queue() {
         return NO;
     }
     BOOL result = NO;
-    NSString *tableName = [self.sqler.table_name lowercaseString];
+    NSString *tableName = [table_name lowercaseString];
     FMResultSet *rs = [self.db executeQuery:EDTableExistsSQL, tableName];
     result = [rs next];
     [rs close];
@@ -129,27 +144,29 @@ static dispatch_queue_t ed_database_queue() {
 
 #pragma mark - Private Method -
 ///MARK:- 重置 -
-- (EDBuild *)reset{
-    self.sqler.sql_statements = nil;
-    return self;
+- (EDBuild *(^)(NSString *))reset{
+    return ^EDBuild *(NSString *sql){
+        sql = nil;
+        return self;
+    };
 }
 
 ///MARK:- 创建表 -
-- (EDBuild *(^)(NSString *))create_table{
+- (EDBuild *(^)(NSString *, NSString *))create_table{
     
-    return ^EDBuild *(NSString * db_name){
+    return ^EDBuild *(NSString * db_name,NSString *sql){
         CREATE_DATABASE(self,db_name);
         if (![self.db open]) {
             self.db = nil;
             [self.errors addObject:[NSError errorWithDomain:EDErrorDomain code:EDDataBaseOpenError userInfo:@{NSLocalizedDescriptionKey:EDDataBaseOpenErrorDescription}]];
             return self;
         }
-        BOOL result = [self.db executeStatements:self.sqler.sql_statements];
+        BOOL result = [self.db executeStatements:sql];
         if (!result) {
             [self.errors addObject:[NSError errorWithDomain:EDErrorDomain code:EDCreateTableError userInfo:@{NSLocalizedDescriptionKey:EDCreateTableErrorDescription}]];
         }
         [self.db close];
-        return self.reset;
+        return self.reset(sql);
         ///CREATE TABLE IF NOT EXISTS table(column1 int PRIMARY KEY,column2 int NOT NULL)
     };
 }
@@ -158,13 +175,12 @@ static dispatch_queue_t ed_database_queue() {
 /// 用于每次调用make_database的时候，不是每一次都去创建一个db，如果db存在的话，就删除表，重新建表
 - (EDBuild *(^)(NSString *))drop_table{
     
-    return ^EDBuild *(NSString * db_name){
-        CREATE_DATABASE(self,db_name);
+    return ^EDBuild *(NSString * table_name){
         if (![self.db open]) {
             self.db = nil;
             return self;
         }
-        NSString *sql = [NSString stringWithFormat:EDTableDropSQL,self.sqler.table_name];
+        NSString *sql = [NSString stringWithFormat:EDTableDropSQL,table_name];
         [self.db executeStatements:sql];
         [self.db close];
         return self;
@@ -172,15 +188,15 @@ static dispatch_queue_t ed_database_queue() {
 }
 
 ///MARK:- 插入数据 -
-- (EDBuild *(^)())insert_data{
-    EDBuild *(^method)() = ^EDBuild *(){
+- (EDBuild *(^)(NSString *))insert_data{
+    EDBuild *(^method)(NSString *sql) = ^EDBuild *(NSString *sql){
         __block BOOL result = NO;
         dispatch_barrier_async(ed_database_queue(), ^{
             if (![self.db open]) {
                 self.db = nil;
                 return ;
             }
-            result = [self.db executeUpdate:self.sqler.sql_statements,nil];
+            result = [self.db executeUpdate:sql,nil];
             if (result == NO) {
                 [self.errors addObject:[NSError errorWithDomain:EDErrorDomain code:EDInsertDataError userInfo:@{NSLocalizedDescriptionKey:EDInsertDataErrorDescription}]];
             }

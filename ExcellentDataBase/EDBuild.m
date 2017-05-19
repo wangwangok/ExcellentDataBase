@@ -71,6 +71,7 @@ static dispatch_queue_t ed_database_queue() {
 
 #pragma mark - Public Method -
 - (EDBuild *(^)(NSString *db_name ,EDCreateHandle making))make_database{
+    self.sqler.sql_statements = nil;
     EDBuild *(^method)(NSString *db_name ,EDCreateHandle making) =^EDBuild *(NSString *db_name ,EDCreateHandle making){
         CREATE_DATABASE(self,db_name);
         EDSqlCreateBridge *create = EDSqlCreateBridge.new;
@@ -102,6 +103,7 @@ static dispatch_queue_t ed_database_queue() {
 
 - (EDBuild *(^)(EDInsertHandle inserts))insert{
 #warning TODO
+    self.sqler.sql_statements = nil;
     EDBuild *(^method)(EDInsertHandle inserts) =^EDBuild *(EDInsertHandle inserts){
         dispatch_async(ed_database_queue(), ^{
             EDSqlInsertBridge *insert_sql = EDSqlInsertBridge.new;

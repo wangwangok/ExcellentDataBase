@@ -161,18 +161,64 @@ EDEncodingType EDEncodeTheType(char const *value){
 
 @end
 
+/**
+ *
+ * 这里解释一下为什么要用函数指针，增加这个函数的复杂度。因为在create，insert，等等根据模型来处理的操作都需要用到这些。然后我用函数的指针的方式，将具体的操作放到外面去，由每个具体场景具体处理
+ * 为什么这里不直接传入一个函数，而是要传入一个函数指针呢？如果是函数的话逻辑就没有这么清晰，又要在这个函数里面加入一系列的判断语句。
+ *
+ */
+
+/**
+ *
+ * param: property :对象的属性信息；
+ * param: sql      : 拼接过的sql；
+ * param: context  :上下文，实际上是传递self
+ */
+typedef void(*PropertyEncodeHandle)(void *property,const char *sql, void *context);
+
+typedef void(*PropertyObjectEncodeHandle)(id data,NSString *table_name,void *property,const char *sql, void *context);
+void c_base_property_encode(id data,NSString *table_name,void *context,stack_pointer *top, PropertyEncodeHandle text,PropertyEncodeHandle interger ,PropertyEncodeHandle floats ,PropertyEncodeHandle bools,PropertyObjectEncodeHandle objects){
+    /// http://www.w3school.com.cn/json/json_syntax.asp
+    unsigned int count = 0;
+    objc_property_t *properties = class_copyPropertyList([data class], &count);
+    NSMutableString *create_table_sql = [NSMutableString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@()",table_name];
+    for (int i = 0; i < count; i++) {
+        objc_property_t property = *(properties + i);
+        EDPropertyInfo *data_property = [[EDPropertyInfo alloc] initPropertyInfoWith:property];
+        void *c_property = (__bridge void *)data_property;
+        switch (data_property.encode_type) {
+            case EDEncodeTypeChar:
+            case EDEncodeTypeUChar:
+            case EDEncodeTypeChars:text(c_property,create_table_sql.UTF8String,context);break;/// char -- text
+            case EDEncodeTypeInt:
+            case EDEncodeTypeShort:
+            case EDEncodeTypeInt32:
+            case EDEncodeTypeInt64:
+            case EDEncodeTypeUInt:
+            case EDEncodeTypeUShort:
+            case EDEncodeTypeUInt32:
+            case EDEncodeTypeUInt64:interger(c_property,create_table_sql.UTF8String,context);break;/// integer -- INTEGER
+            case EDEncodeTypeFloat:
+            case EDEncodeTypeDouble:floats(c_property,create_table_sql.UTF8String,context);break;/// float -- REAL
+            case EDEncodeTypeBool:bools(c_property,create_table_sql.UTF8String,context);break;/// bool -- NUMERIC
+            case EDEncodeTypeObject:objects(data,table_name,c_property,create_table_sql.UTF8String,context);break;/// 数组、模型。到了这里就说明要创建新表了，就需要用到栈。
+            default:
+                break;
+        }
+    }
+    char *c_sql = (char *)create_table_sql.UTF8String;
+    c_base_end(c_sql);
+    create_table_sql = [NSMutableString stringWithUTF8String:c_sql];
+    stack_push(top, create_table_sql, table_name);
+}
+
 typedef enum e_SqlAppend{
     ESqlAppendAppend,/// 添加类型为添加列
     ESqlAppendConstraint///添加约束
 }ESqlAppendType;
 
-@interface EDSqlCreateBridge (){
-
-}
-
-
+@interface EDSqlCreateBridge ()
 @property (nonatomic, assign) ESqlAppendType e_append_type;
-
 @end
 
 @implementation EDSqlCreateBridge : EDSqlBridge
@@ -185,44 +231,10 @@ typedef enum e_SqlAppend{
     [sql insertString:colum_sql atIndex:index];
 }
 
+/**
 - (void)property_encode:(id)data aTableName:(NSString *)table_name{
 #warning TODO:FOR INSERT,DELETE,QUERY
     /// http://www.w3school.com.cn/json/json_syntax.asp
-    /**
-     JSON 值可以是：
-     数字（整数或浮点数）
-     字符串（在双引号中）
-     逻辑值（true 或 false）
-     数组（在方括号中）
-     对象（在花括号中）
-     null
-     */
-    /**
-     {
-     2      "firstName": "John",
-     3      "lastName": "Smith",
-     4      "sex": "male",
-     5      "age": 25,
-     6      "address":
-     7      {
-     8          "streetAddress": "21 2nd Street",
-     9          "city": "New York",
-     10          "state": "NY",
-     11          "postalCode": "10021"
-     12      },
-     13      "phoneNumber":
-     14      [
-     15          {
-     16            "type": "home",
-     17            "number": "212 555-1234"
-     18          },
-     19          {
-     20            "type": "fax",
-     21            "number": "646 555-4567"
-     22          }
-     23      ]
-     24  }
-     */
     unsigned int count = 0;
     objc_property_t *properties = class_copyPropertyList([data class], &count);
     NSMutableString *create_table_sql = [NSMutableString stringWithFormat:@"CREATE TABLE IF NOT EXISTS %@()",table_name];
@@ -277,13 +289,52 @@ typedef enum e_SqlAppend{
                 break;
         }
     }
-    NSString *regex = @",\\)";
-    NSRange range = [create_table_sql rangeOfString:regex options:NSRegularExpressionSearch];
-    if (range.location != NSNotFound) {
-        [create_table_sql deleteCharactersInRange:NSMakeRange(range.location, 1)];
-    }
+    char *c_sql = (char *)create_table_sql.UTF8String;
+    c_base_end(c_sql);
+    create_table_sql = [NSMutableString stringWithUTF8String:c_sql];
     stack_push(&top, create_table_sql, table_name);
 }
+*/
+
+#pragma mark - Function Pointer For Create -
+void sql_text(void *property,const char *sql, void *context){
+    EDSqlCreateBridge *_self = (__bridge EDSqlCreateBridge *)(context);
+    EDPropertyInfo *info = (__bridge EDPropertyInfo *)(property);
+    [_self append_for_create:info.name aValue2:@"TEXT" theSql:[NSMutableString stringWithUTF8String:sql]];
+}
+
+void sql_interger(void *property,const char *sql, void *context){
+    EDSqlCreateBridge *_self = (__bridge EDSqlCreateBridge *)(context);
+    EDPropertyInfo *info = (__bridge EDPropertyInfo *)(property);
+    [_self append_for_create:info.name aValue2:@"INTEGER" theSql:[NSMutableString stringWithUTF8String:sql]];
+}
+
+void sql_float(void *property,const char *sql, void *context){
+    EDSqlCreateBridge *_self = (__bridge EDSqlCreateBridge *)(context);
+    EDPropertyInfo *info = (__bridge EDPropertyInfo *)(property);
+    [_self append_for_create:info.name aValue2:@"REAL" theSql:[NSMutableString stringWithUTF8String:sql]];
+}
+
+void sql_bool(void *property,const char *sql, void *context){
+    EDSqlCreateBridge *_self = (__bridge EDSqlCreateBridge *)(context);
+    EDPropertyInfo *info = (__bridge EDPropertyInfo *)(property);
+    [_self append_for_create:info.name aValue2:@"NUMERIC" theSql:[NSMutableString stringWithUTF8String:sql]];
+}
+
+void sql_object(id data,NSString *table_name,void *property,const char *sql, void *context){
+    EDSqlCreateBridge *_self = (__bridge EDSqlCreateBridge *)(context);
+    EDPropertyInfo *info = (__bridge EDPropertyInfo *)(property);
+    if ([info.clazz isSubclassOfClass:[NSArray class]] ||
+        [info.clazz isSubclassOfClass:[NSMutableArray class]]){///json中的数组，拿第一个元素，也就成了处理对象。如果为空不操作
+        NSArray *array = [[info valueForKey:info.name] mutableCopy];
+        if (array && array.count > 0) {
+            c_base_property_encode(data, table_name, context, &(_self->top), &sql_text, &sql_interger, &sql_float, &sql_bool, &sql_object);
+        }
+    }else{/// json中的对象
+        c_base_property_encode(data, table_name, context, &(_self->top), &sql_text, &sql_interger, &sql_float, &sql_bool, &sql_object);
+    }
+}
+
 #pragma mark - Public -
 - (EDSqlCreateBridge *(^)(BOOL, id,...))create{
     self.sql_statements = nil;
@@ -305,7 +356,8 @@ typedef enum e_SqlAppend{
                 }
             }
             va_end(args);
-            [self property_encode:contents aTableName:table_name_arg ?: @"unkown_table"];
+            c_base_property_encode(contents, table_name_arg ?: @"unkown_table", (__bridge void *)(self), &(self->top), &sql_text, &sql_interger, &sql_float, &sql_bool, &sql_object);
+            ///[self property_encode:contents aTableName:table_name_arg ?: @"unkown_table"];
         }
         return self;
     };
@@ -375,6 +427,14 @@ typedef enum e_SqlAppend{
 }
 
 @end
+
+
+
+
+
+
+
+
 
 typedef enum {
     EDInsertCallNone,EDInsertCallAppend,EDInsertCallAllIn,

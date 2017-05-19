@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+void c_base_end(char *sql);
+
 @interface EDSqlBridge : NSObject
 
 /** sql 语句 */
@@ -18,5 +20,6 @@
 @property (nonatomic, readonly, copy)NSString *table_name;
 
 - (EDSqlBridge *(^)(NSString *,NSString *))end;
+
 
 @end

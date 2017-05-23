@@ -17,6 +17,8 @@
 		3BA0F20F1EC3149E00B6BF98 /* ExcellentDataBasePublicHeader.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BA0F20E1EC3147C00B6BF98 /* ExcellentDataBasePublicHeader.h */; settings = {ATTRIBUTES = (Public, ); }; };
 		3BC100311ECAD63500B61364 /* EDSqlStatementsBridge.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */; };
 		3BC100321ECAD63500B61364 /* EDSqlStatementsBridge.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */; };
+		3BC100431ED2D1FA00B61364 /* NSString+Constraint.h in Headers */ = {isa = PBXBuildFile; fileRef = 3BC100411ED2D1FA00B61364 /* NSString+Constraint.h */; };
+		3BC100441ED2D1FA00B61364 /* NSString+Constraint.m in Sources */ = {isa = PBXBuildFile; fileRef = 3BC100421ED2D1FA00B61364 /* NSString+Constraint.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -44,6 +46,8 @@
 		3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = EDSqlStatementsBridge.h; sourceTree = "<group>"; };
 		3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = EDSqlStatementsBridge.m; sourceTree = "<group>"; };
 		3BC100361ECADB4E00B61364 /* libFMDB.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libFMDB.a; path = "../../Library/Developer/Xcode/DerivedData/EDExamole-djeyssfhnxkisnghaulayzmysoil/Build/Products/Debug-iphonesimulator/FMDB/libFMDB.a"; sourceTree = "<group>"; };
+		3BC100411ED2D1FA00B61364 /* NSString+Constraint.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "NSString+Constraint.h"; sourceTree = "<group>"; };
+		3BC100421ED2D1FA00B61364 /* NSString+Constraint.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = "NSString+Constraint.m"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -95,6 +99,8 @@
 				3BA0F1E31EC3038C00B6BF98 /* EDSQLer.m */,
 				3BC1002F1ECAD63500B61364 /* EDSqlStatementsBridge.h */,
 				3BC100301ECAD63500B61364 /* EDSqlStatementsBridge.m */,
+				3BC100411ED2D1FA00B61364 /* NSString+Constraint.h */,
+				3BC100421ED2D1FA00B61364 /* NSString+Constraint.m */,
 				3BA0F1CA1EC3037200B6BF98 /* Info.plist */,
 			);
 			path = ExcellentDataBase;
@@ -129,6 +135,7 @@
 				3BC100311ECAD63500B61364 /* EDSqlStatementsBridge.h in Headers */,
 				3BA0F1E61EC3038C00B6BF98 /* EDSQLer.h in Headers */,
 				3BA0F1D71EC3037200B6BF98 /* ExcellentDataBase.h in Headers */,
+				3BC100431ED2D1FA00B61364 /* NSString+Constraint.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,6 +237,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3BC100441ED2D1FA00B61364 /* NSString+Constraint.m in Sources */,
 				3BC100321ECAD63500B61364 /* EDSqlStatementsBridge.m in Sources */,
 				3BA0F1E71EC3038C00B6BF98 /* EDSQLer.m in Sources */,
 				3BA0F1E51EC3038C00B6BF98 /* EDBuild.m in Sources */,

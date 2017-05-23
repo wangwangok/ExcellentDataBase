@@ -7,8 +7,7 @@
 //
 
 #import <Foundation/Foundation.h>
-
-void c_base_end(char *sql);
+#import "NSObject+Constraint.h"
 
 @interface EDSqlBridge : NSObject
 

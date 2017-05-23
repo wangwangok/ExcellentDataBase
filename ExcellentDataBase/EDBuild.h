@@ -9,14 +9,7 @@
 #import <Foundation/Foundation.h>
 #import "EDSQLer.h"
 #import "EDSqlStatementsBridge.h"
-
-#if DEBUG
-#define bool_log(desc,bool) NSLog(@""desc"%@",bool==YES?@"YES":@"NO")
-#endif
-
-typedef void(^ErrorHandle)(NSArray<NSError *>*);
-typedef void(^EDCreateHandle)(EDSqlCreateBridge *sqler);
-typedef void(^EDInsertHandle)(EDSqlInsertBridge *sqler);
+#import "NSObject+Constraint.h"
 
 __attribute__((objc_subclassing_restricted)) @interface EDBuild : NSObject
 

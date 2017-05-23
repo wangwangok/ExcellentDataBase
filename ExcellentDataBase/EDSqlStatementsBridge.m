@@ -13,53 +13,6 @@
                 NSAssert(NO, @"Sql statement is empty, Please call \"create\" method before");\
               }
 
-/**
- 在将model创建表的时候，这个model的属性里面可能还包含了其他的model，所以这时候我们就需要去创建这个表。为此我使用stack来保存sql，也就是最先创建最里面的表，一次这样。
- 我构思的创建方法adt模型是：
- ```
- 第一层sql
- builder.create(...).constraint("name",EConstraintsPrimaryKey,nil).constraint("table",EConstraintsNone,{///内层
-    /// 表中包含表
-    第二层sql
-    builder.create(...).constraint("name",EConstraintsNone,nil)
- }).constraint("table",EConstraintsNone,{
-    /// 表中包含表
-    第二层sql
-    builder.create(...).constraint("name",EConstraintsNone,{///内层
-        第三层sql
-    })
- })
- ```
- */
-void stack_push(stack_pointer *top, NSString * const sql, NSString * const table_name){
-    if (!sql) return;
-    char *sql_chars = (char *)sql.UTF8String;
-    char *table_names = (char *)table_name.UTF8String;
-    stack_pointer node = malloc(sizeof(stack_pointer));
-    if (!node) return;
-    node->table.sql = sql_chars;
-    node->table.table_name = table_names;
-    if (!top) {
-        node->next = NULL;
-        *top = node;
-    }else{
-        node->next = *top;
-        *top = node;
-    }
-}
-
-struct stack_table stack_pop(stack_pointer *top){
-    stack_pointer temp = *top;
-    if (!temp) {
-        struct stack_table null_table = {NULL,NULL};
-        return null_table;
-    }
-    struct stack_table table_value = temp->table;
-    *top = temp->next;
-    free(temp);
-    return table_value;
-}
-
 EDEncodingType EDEncodeTheType(char const *value){
     /// 这里借鉴了https://github.com/ibireme/YYModel/blob/master/YYModel/YYClassInfo.m
     /// 但是这里没有用到的name里面的数据，也就是说，我不需要在一个16位的数字中不需要用高八位存name信息，我只需要用里面的低八位来存value信息
@@ -71,45 +24,46 @@ EDEncodingType EDEncodeTheType(char const *value){
         return EDEncodeTypeUnknown;
     }
     switch (*value) {
-        case 'c':///char
+        case _C_CHR:///char
             return EDEncodeTypeChar;
-        case 'i':///int
+        case _C_INT:///int
             return EDEncodeTypeInt;
-        case 's':///short
+        case _C_SHT:///short
             return EDEncodeTypeShort;
-        case 'l':/// long - int32_t
+        case _C_LNG:/// long - int32_t
             return EDEncodeTypeInt32;
-        case 'q':/// long long - int64_t
+        case _C_LNG_LNG:/// long long - int64_t
             return EDEncodeTypeInt64;
-        case 'C':/// unsigned char
+        case _C_UCHR:/// unsigned char
             return EDEncodeTypeUChar;
-        case 'I':/// unsigned int
+        case _C_UINT:/// unsigned int
             return EDEncodeTypeUInt;
-        case 'S':/// unsigned short
+        case _C_USHT:/// unsigned short
             return EDEncodeTypeUShort;
-        case 'L':/// unsigned long
+        case _C_ULNG:/// unsigned long
             return EDEncodeTypeUInt32;
-        case 'Q':/// unsigned long long
+        case _C_ULNG_LNG:/// unsigned long long
             return EDEncodeTypeUInt64;
-        case 'f':/// float
+        case _C_FLT:/// float
             return EDEncodeTypeFloat;
-        case 'd':/// double
+        case _C_DBL:/// double
             return EDEncodeTypeDouble;
-        case 'B':///Bool
+        case _C_BOOL:///Bool
             return EDEncodeTypeBool;
-        case 'v':///Void
+        case _C_VOID:///Void
             return EDEncodeTypeVoid;
-        case '*':
+        case _C_CHARPTR:
             return EDEncodeTypeChars;
-        case '@': {
+        case _C_ID: {
             if (len == 2 && *(value + 1) == '?')
                 return EDEncodeTypeUnknown;
             else
                 return EDEncodeTypeObject;
         }
-        case '^':
+        case _C_PTR:
             return EDEncodeTypePointer;
-        case '{':
+        case _C_STRUCT_B:
+        case _C_STRUCT_E:
             return EDEncodeTypeStruct;
         default:return EDEncodeTypeUnknown;
     }
@@ -175,7 +129,6 @@ EDEncodingType EDEncodeTheType(char const *value){
  * param: context  :上下文，实际上是传递self
  */
 typedef void(*PropertyEncodeHandle)(void *property,const char *sql, void *context);
-
 typedef void(*PropertyObjectEncodeHandle)(id data,NSString *table_name,void *property,const char *sql, void *context);
 void c_base_property_encode(id data,NSString *table_name,void *context,stack_pointer *top, PropertyEncodeHandle text,PropertyEncodeHandle interger ,PropertyEncodeHandle floats ,PropertyEncodeHandle bools,PropertyObjectEncodeHandle objects){
     /// http://www.w3school.com.cn/json/json_syntax.asp
@@ -364,6 +317,35 @@ void sql_object(id data,NSString *table_name,void *property,const char *sql, voi
     return method;
 }
 
+/**
+ * 1.对于同一种类型的约束，可以同时设置多个col；
+ * 2.对于不同层级的表，
+ * 3. create().table()
+ */
+- (EDSqlCreateBridge *(^)(NSString *table_name,EDSqlCreateHandle constraint))table{
+    self.sql_statements = nil;
+    EDSqlCreateBridge *(^method)(NSString *table_name,EDSqlCreateHandle constraint) = ^EDSqlCreateBridge *(NSString *table_name,EDSqlCreateHandle constraint){
+        /**
+         block操作
+         ...
+         利用self.sql_statements来操作sql语句，操作完成之后，将栈中的sql语句进行更新。
+         只是在constraints局部方法中零时使用了self.sql_statements，真正存储sql语句还是栈
+         */
+        stack_pointer query = stack_query(self->top, [table_name UTF8String]);
+        if (NULL == query) {
+            return self;
+        }
+        self.sql_statements = [[NSString stringWithUTF8String:query->table.sql] mutableCopy];
+        constraint(self);
+        /// 栈中数据更新
+        query->table.sql = (char *)[self.sql_statements UTF8String];
+        /// 完成之后重新清空
+        self.sql_statements = nil;
+        return self;
+    };
+    return method;
+}
+
 - (EDSqlCreateBridge *(^)(NSString *value1,NSString *value2))append{
     if (!self.sql_statements) {
         NSAssert(NO, @"Sql statement is empty, Please call \"create\" method before");
@@ -376,41 +358,23 @@ void sql_object(id data,NSString *table_name,void *property,const char *sql, voi
     return method;
 }
 
+
+
+
 #define MAX_CONSTRAINTS_SIZE 6
+/// 这里需要解决sql语句的变换，或者是直接复制sql语句？
 - (EDSqlCreateBridge *(^)(int constraint, NSString *others,...))constraint{
     
+    SQL_NULL;
+    if (self.sql_statements.length < 2) {
+        NSAssert(NO, @"Sql Length Error");
+    }
     return ^EDSqlCreateBridge *(int constraint, NSString *others,...){
         if (ESqlAppendConstraint == self.e_append_type) {/// 防止在约束后面连续添加约束
             return self;
         }
-        NSMutableString *sql_constraints = [NSMutableString string];
-        int enum_constraint[MAX_CONSTRAINTS_SIZE] = {
-            EConstraintsNone,
-            EConstraintsNotNull,
-            EConstraintsUnique,
-            EConstraintsPrimaryKey,
-            EConstraintsCheck,
-            EConstraintsDefault
-        };
-        for (int i = 0; i < MAX_CONSTRAINTS_SIZE; i++) {
-            if ((constraint & enum_constraint[i]) == enum_constraint[i]) {
-                switch (enum_constraint[i]) {
-                    case EConstraintsNone:break;
-                    case EConstraintsNotNull:[sql_constraints appendString:@" NOT NULL"];break;
-                    case EConstraintsUnique:[sql_constraints appendString:@" UNIQUE"];break;
-                    case EConstraintsPrimaryKey:[sql_constraints appendString:@" PRIMARY KEY"];break;
-                    case EConstraintsCheck:[sql_constraints appendString:@" CHECK"];break;
-                    case EConstraintsDefault:[sql_constraints appendString:@" DEFAULT"];break;
-                }
-            }
-        }
-        NSInteger index = self.sql_statements.length - 2;
-        [self.sql_statements insertString:sql_constraints atIndex:index];
-        if (!others) {
-            return self;
-        }
-        index = self.sql_statements.length - 2;
-        [self.sql_statements insertString:[NSString stringWithFormat:@" %@",others] atIndex:index];
+        [NSObject new].constraint(constraint,self.sql_statements,others);
+        NSInteger index = 0;
         va_list args;
         va_start(args, others);
         NSString *arg;
@@ -427,7 +391,6 @@ void sql_object(id data,NSString *table_name,void *property,const char *sql, voi
 }
 
 @end
-
 
 
 

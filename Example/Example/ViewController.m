@@ -7,7 +7,9 @@
 //
 
 #import "ViewController.h"
+//#import <FMDB/FMDB.h>
 #import <ExcellentDataBase/ExcellentDataBase.h>
+
 
 @interface ViewController ()
 
@@ -17,14 +19,14 @@
 
 - (void)viewDidLoad {
     [super viewDidLoad];
-    EDBuild *builder = [EDBuild new];
-    builder.make_database(@"database",^(EDSqlBridge *sqler){
-        sqler.create(@"news",YES).append(@"id",@"int").constraint(EConstraintsPrimaryKey,nil).append(@"title",@"varchar(255)").constraint(EConstraintsNotNull,nil);
-    }).insert(^(EDSqlBridge *sqler){
-        sqler.create(@"news",YES).append(@"id",@"101").append(@"title",@"Changan Street");
-    }).catchException(^(NSArray<NSError *> *errors){
-        NSLog(@"%@",errors);
-    });
+//    EDBuild *builder = [EDBuild new];
+//    builder.make_database(@"database",^(EDSqlBridge *sqler){
+//        sqler.create(@"news",YES).append(@"id",@"int").constraint(EConstraintsPrimaryKey,nil).append(@"title",@"varchar(255)").constraint(EConstraintsNotNull,nil);
+//    }).insert(^(EDSqlBridge *sqler){
+//        sqler.create(@"news",YES).append(@"id",@"101").append(@"title",@"Changan Street");
+//    }).catchException(^(NSArray<NSError *> *errors){
+//        NSLog(@"%@",errors);
+//    });
 }
 
 

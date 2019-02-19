@@ -12,11 +12,6 @@
 #define bool_log(desc,bool) NSLog(@""desc"%@",bool==YES?@"YES":@"NO")
 #endif
 
-@class EDSqlCreateBridge,EDSqlInsertBridge;
-typedef void(^ErrorHandle)(NSArray<NSError *>*);
-typedef void(^EDCreateHandle)(EDSqlCreateBridge *sqler);
-typedef void(^EDInsertHandle)(EDSqlInsertBridge *sqler);
-
 #pragma mark - Stack -
 struct stack_table {
     char *sql;

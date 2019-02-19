@@ -1,12 +1,13 @@
 //
 //  EDSQLer.m
-//  新成都范儿
+//  EDSQLer
 //
 //  Created by 王望 on 2017/5/10.
-//  Copyright © 2017年 dev@huaxi100.com. All rights reserved.
+//  Copyright © 2017年 wangwangok. All rights reserved.
 //
 
 #import "EDSQLer.h"
+#import "NSObject+Constraint.h"
 
 @implementation EDSqlBridge
 @synthesize table_name = _table_name;

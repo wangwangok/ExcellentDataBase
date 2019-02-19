@@ -1,15 +1,19 @@
 //
 //  EDBuild.h
-//  新成都范儿
+//  EDBuild
 //
 //  Created by 王望 on 2017/5/10.
-//  Copyright © 2017年 dev@huaxi100.com. All rights reserved.
+//  Copyright © 2017年 wangwangok. All rights reserved.
 //
 
 #import <Foundation/Foundation.h>
 #import "EDSQLer.h"
-#import "EDSqlStatementsBridge.h"
-#import "NSObject+Constraint.h"
+
+@class EDSqlCreateBridge,EDSqlInsertBridge;
+
+typedef void(^ErrorHandle)(NSArray<NSError *>*);
+typedef void(^EDCreateHandle)(EDSqlCreateBridge *sqler);
+typedef void(^EDInsertHandle)(EDSqlInsertBridge *sqler);
 
 __attribute__((objc_subclassing_restricted)) @interface EDBuild : NSObject
 
